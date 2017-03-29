@@ -1,0 +1,17 @@
+{
+  "name": "socket-tasklist",
+  "version": "0.0.1",
+  "description": "Collaboration server used by the ColabTask clients",
+  "main": "index.js",
+  "author": "Kristof Boucher Charboneau",
+  "private": false,
+  "license": "GNU",
+  "dependencies": {},
+  "scripts": {
+    "start": "node index.js"
+  },
+  "devDependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^1.7.3"
+  }
+}

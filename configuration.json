@@ -1,0 +1,21 @@
+{
+	"application": {
+		"maxSimultaneousConn": 3,
+		"server": {
+			"port": 3000
+		},
+		"authentication": {
+			"hostname": "http://127.0.0.1",
+			"port": 8000,
+			"path": "/api/v1/users",
+			"method": "GET"
+		}
+	},
+	"channels": [{
+		"name": "task",
+		"topics": [{
+			"name": "create",
+			"description": "A task was created"
+		}]
+	}]
+}
