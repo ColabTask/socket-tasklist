@@ -30,7 +30,7 @@ const validateUser = (token, id, cb) => {
 	const authentication = configuration.application.authentication;
 	let body = '';
 	const req = http.request({
-		hostname: authentication.hostname,
+		host: authentication.hostname,
 		port: authentication.port,
 		path: authentication.path + "/" + id,
 		method: authentication.method,
@@ -39,21 +39,23 @@ const validateUser = (token, id, cb) => {
 		}
 	}, (res) => {
 		res.on('data', (chunk) => { body += chunk; });
-		res.on('end', () => { cb(true, JSON.parse(body)); });
+		res.on('end', () => { cb(false, JSON.parse(body)); });
 	});
-	req.on('error', (e) => { cb(false, {msg: e.message}); });
+	req.on('error', (e) => { cb(true, {msg: e.message}); });
+	req.end();
 };
 
 server.listen(configuration.application.server.port, () => {
 	console.log('Server listening at port: ' + configuration.application.server.port);
 });
 
-io.on('connect', (socket) => {
+io.on('connection', (socket) => {
+	socket.emit('connect');
 	// When a user is connected, make sure to validate the token with the main authentication server
 	// Is the user already connected?
 	socket.auth = false;
 	socket.userid = null;
-	socket.on('authenticate', (data) => {
+	socket.on('authenticate', (data, cb) => {
 		if( data.token == undefined || data.id == undefined || data.token == '' || data.id == '' ) {
 			socket.disconnect('unauthorized');
 		}
@@ -63,17 +65,20 @@ io.on('connect', (socket) => {
 				socket.auth = true;
 				socket.userid = data.id;
 				try {
-					manager.connect(msg.id, msg.username, token, socket);
+					manager.connect(msg.id, msg.username, data.token, socket);
+					cb({status: true});
+					//console.log(data);
 					console.log('User id:' + data.id + ', username:' + data.username + ' is connected');
 				} catch(e) {
 					socket.disconnect('Maximum connection count reached');
+					console.log(e);
 				}
 			}
 		});
 	});
 
 	// One must be authenticated to access other endpoint
-	socket.on('subscribe', (data) => {
+	socket.on('subscribe', (data, cb) => {
 		if( !socket.auth ) {
 			socket.disconnect('unauthorized');
 			return;
@@ -85,12 +90,14 @@ io.on('connect', (socket) => {
 
 		try {
 			manager.subscribe(socket.userid, data.channel);
+			console.log('User id:' + socket.userid + ' is connected to: ' + data.channel);
 		} catch(e) {
 			console.log('User id:' + socket.userid + ' is already connected to ' + data.channel);
 		}
+		cb({status: true});
 	});
 
-	socket.on('unsubscribe', (data) => {
+	socket.on('unsubscribe', (data, cb) => {
 		if( !socket.auth ) {
 			socket.disconnect('unauthorized');
 			return;
@@ -105,11 +112,13 @@ io.on('connect', (socket) => {
 		} catch(e) {
 			console.log('User id:' + socket.userid + ' tried to disconnect from unsubscribed channel ' + data.channel);
 		}
+		cb({status: true});
 	});
 
 	socket.on('disconnect', () => {
 		try {
 			manager.disconnect(socket.userid);
+			console.log('User id:' + socket.userid + ' has left the server');
 		} catch(e) {
 			console.log('Tried to disconnect non connected user: ' + socket.userid);
 		}

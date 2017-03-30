@@ -95,8 +95,8 @@ class Manager {
 	 * @param {number} id The user id
 	 */
 	getSubscribedChannel(id) {
-		if( this.isConnected(id) && this.usersToChannel[id] != undefined ) {
-			return this.usersToChannel[id];
+		if( this.isConnected(id) && this.usersToChannels[id] != undefined ) {
+			return this.usersToChannels[id];
 		}
 		return [];
 	}
@@ -113,7 +113,7 @@ class Manager {
 		if( this.isSubscribed(userid, name) ) {
 			throw new ManagerException(ManagerExceptionType.USER_ALREADY_SUBSCRIBED);
 		}
-		if( this.usersToChannel[userid] == undefined ) {
+		if( this.usersToChannels[userid] == undefined ) {
 			this.usersToChannels[userid] = [];
 		}
 		this.usersToChannels[userid].push(name);
