@@ -1,19 +1,11 @@
 ## Project Setup
 
-### Create a new virtual environment.
-```
-virtualenv ve
-. ve/bin/activate
-```
-
-### Install python requirements
-```
-`pip install -r requirements.txt`
+### Install dependencies
+```bash
+$ npm install
 ```
 
-### Run Django Development Server
-NB : Open a new terminal window
-```
-cd ../
-python manage.py runserver
+### Run the project
+```bash
+$ npm run start
 ```
