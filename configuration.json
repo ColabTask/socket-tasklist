@@ -9,6 +9,12 @@
 			"port": 8000,
 			"path": "/api/v1/users",
 			"method": "GET"
+		},
+		"master": {
+			"hostname": "127.0.0.1",
+			"port": 3030,
+			"path": "/server/emit",
+			"secret": "MYSECRETKEY"
 		}
 	},
 	"channels": [{

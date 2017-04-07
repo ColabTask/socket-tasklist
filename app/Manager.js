@@ -131,6 +131,15 @@ class Manager {
 		this.usersToChannels[userid].splice( this.usersToChannels[userid].indexOf(name), 1 );
 	}
 
+	/**
+	 * Get a user
+	 * @param {number} userid
+	 * @return User
+	 */
+	getUser(userid) {
+		return this.users[userid] != undefined ? this.users[userid] : null;
+	}
+
 }
 
 module.exports = Manager;

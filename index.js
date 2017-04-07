@@ -7,6 +7,9 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const Manager = require('./app/Manager');
+const Emitter = require('./app/Emitter');
+const Message = require('./app/models/Message');
+const bodyParser = require('body-parser');
 
 // Only connection from socket.io are supported
 //const app = http.createServer((req, res) => {
@@ -18,12 +21,14 @@ const Manager = require('./app/Manager');
 //});
 
 const app = express();
+const master = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
 // Configure the server
 const configuration = JSON.parse(fs.readFileSync(__dirname + '/configuration.json'));
 const manager = Manager.fromConfiguration(configuration);
+const emitter = new Emitter(manager);
 
 // Make a request to the server with the token to retrieve the user info
 const validateUser = (token, id, cb) => {
@@ -48,6 +53,37 @@ const validateUser = (token, id, cb) => {
 server.listen(configuration.application.server.port, () => {
 	console.log('Server listening at port: ' + configuration.application.server.port);
 });
+
+// Master connection: the socket server receive a message and distributes it
+master.use(bodyParser.json());
+master.use(bodyParser.urlencoded({ extended: true }));
+master.post(configuration.application.master.path, (req, res) => {
+	console.log(req.hostname);
+	if( req.hostname != configuration.application.master.hostname ) {
+		res.status(403).end();
+		//return;
+	}
+	const secret = req.get('X-Authorization-Token');
+	if( secret == undefined || secret != configuration.application.master.secret ) {
+		res.status(403).end();
+		//return;
+	}
+	const data = req.body;
+	if(data == "") {
+		res.status(403).end();
+		return;
+	}
+	console.log("Received from master:", data);
+	//const parsed = JSON.parse(data);
+	// Distribute the message
+	// Only 1-1 for now
+	const message = Message.fromNotification(data);
+	emitter.emit(message);
+});
+master.listen(configuration.application.master.port, () => {
+	console.log('Listening for master event at port: ' + configuration.application.master.port);
+});
+
 
 io.on('connection', (socket) => {
 	socket.emit('connect');

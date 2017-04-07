@@ -6,7 +6,9 @@
   "author": "Kristof Boucher Charboneau",
   "private": false,
   "license": "GNU",
-  "dependencies": {},
+  "dependencies": {
+    "body-parser": "^1.17.1"
+  },
   "scripts": {
     "start": "node index.js"
   },
